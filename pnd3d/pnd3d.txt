@@ -1,0 +1,216 @@
+PND3D engine by Ken Silverman (http://advsys.net/ken)
+06/24/2014: First public release of PND3D engine demo
+------------------------------------------------------------------------------
+Introduction:
+
+The PND3D engine is something I started, really in response to the hype of
+Unlimited Detail. Initially my goal was to figure out their algorithm. I
+started my first prototype in August 2008. It wasn't until December 2009 that
+I found a rendering algorithm I was happy with (and by that I mean a fast
+enough worst case). Then in 2011, Ace of Spades happened, and so I shifted my
+goal to making a successor to the Voxlap engine. Voxlap's main feature is the
+ability to support unlimited modification to voxels on the grid. Note that
+this design goal is in conflict to tricks like instancing, which can save
+greatly on memory.
+
+I did a lot of stuff over the next year, then AoS changed hands and I lost
+interest in the project. I got frustrated over silly things like physics code
+and shifted into other projects. I figured today was a good day to end the
+silence.
+
+Some major improvements over Voxlap are:
+   * Texture mapping
+   * Support up to 4096^3 grids (higher than that works but with artifacts due
+        to an optimization of structure size)
+   * Support multiple voxel grids; world and sprites are handled the same
+   * Fast, voxel-accurate collision detection
+   * More compact file format: *.KVO (Ken's Voxel Octree)
+
+Some less noticable improvements:
+   * Ability to quickly double or halve voxel grid size if necessary
+   * Ability to safely travel inside solid (Voxlap would crash if you tried!)
+   * Ability to render from any viewpoint (Voxlap required you to be inside or
+        above map!)
+   * Fewer visual artifacts (no jagged edges; no artifacts when looking up or
+        down; no mip-mapping required)
+   * Multithread support
+   * Some GPU acceleration
+   * Effects such as transparency and entire sprite shading offset
+   * Built-in drawsph() and drawcone() functions - handy for debugging
+   * Faster / more accurate normal estimation
+
+Some of my disappointments with the new engine are:
+   * Mod speed. This is mostly the fault of copying from CPU to GPU memory.
+        For games that require less frequent, small changes, this is not
+        an issue. Also note that it is not an issue when using /cpu mode.
+        I suppose this will no longer be an issue once unified CPU&GPU
+        memory becomes common.
+   * Physics. I was greedy - I wanted it all. I never figured out how to
+        handle multiple simultaneous contacts correctly - not even a hack.
+        Currently, objects get stuck and disappear when this happens. I found
+        a paper about it and I admit the math is beyond me. The good news is
+        things are finished on the voxel engine side - meaning I have a fully
+        working function that detects exact cube voxel to voxel collision,
+        which returns contact and normal vector.
+
+File list:
+   PND3D.EXE: The engine demo, limited to 4096^3
+   PND3D.TXT: This help file
+   KENSKY.JPG: A skybox I generated with Terragen (to see, use /fogdist=1e32)
+   KLABTILES.PNG: Some example textures I grabbed from an old game
+
+Requirements:
+   CPU: Must support SSE2 (Pentium 4 or above)
+   System memory: >= 1GByte RAM I guess
+   Graphics card: If CPU mode (/cpu), any old piece of junk should be fine.
+   OS: Microsoft Windows 7 but probably works in older OS's
+   DirectX 9.0 or above
+
+This demo may be distributed freely as long as all files are included.
+
+Demo projects made so far with the engine:
+   * A Voxlap Cave Demo remake
+   * TomCar - a 'Stunts' type remake by Tom Dobrowolski
+I may release these at some point. The engine code currently compiles with
+Microsoft Visual C/C++ 6.0. It should work fine with later versions of 32-bit
+Visual C/C++.
+
+I am open to commercial applications based on Voxlap. You may find my contact
+information at the at the bottom of my website main page here:
+   http://advsys.net/ken
+
+-Ken S.
+
+------------------------------------------------------------------------------
+PND3D controls:
+
+General: ---------------------------------------------------------------------
+                    ESC: quit
+                 Ctrl L: load VOX/KVX/KV6/VXL/KVO
+                 Ctrl S: save KV6/KVO
+                      G: toggle wireframe cubes & 3D brush display
+                      S: toggle shader (CPU only)
+                KPEnter: toggle cube face shade factor (none/some(def.)/a lot)
+
+Camera: ----------------------------------------------------------------------
+       Arrows/RCtrl/KP0: move camera
+                  mouse: rotate camera
+                    ,/.: orbit camera around origin horizontally
+              PGUP/PGDN: orbit camera around origin vertically
+              L/R.Shift: hold for 16x slower/faster movement
+                    {/}: change movement speed by 2x
+                KP/,KP*: change zoom
+                    KP5: reset zoom
+                      /: reset camera
+                Shift /: reset camera except: keep pos & quantizing ori
+                    ;/': change collision radius (fatness) by 2x
+                    <,>: hold to change mix of color vs. texture
+
+Mod: -------------------------------------------------------------------------
+                    Tab: grab surface at cursor
+                  Space: paint surface at cursor
+            Shift Space: paint all in sphere of brush radius at cursor
+                KP+/KP-: inc/dec brightness at cursor
+           Ctrl KP+/KP-: inc/dec texture at cursor
+                      V: select new texture at cursor
+                      P: select new color at cursor
+                      H: remove connected region at cursor
+               Home/End: add/remove sphere at cursor
+         Shift Home/End: add/remove cube at cursor
+  Ctrl (Shift) Home/End: add/remove object (see ^), growing grid if necessary.
+                Ins/Del: add/remove single voxel
+               Ctrl LMB: plot sphere at brush sphere cursor (enable wireframe)
+           Alt Home/End: voxel spray/suck (SLAB6 tool)
+              (Shift) R: add/remove 64 random spheres
+         Ctrl (Shift) R: add/remove 16384 random voxels
+          (Shift) Alt C: add/remove random drawcone
+                 Ctrl N: re-estimate all normals (may be slow)
+                Shift N: normalize colors with textures (GPU only)
+                      M: freeze selected sprite onto previously select sprite
+
+Sprite: ----------------------------------------------------------------------
+            Alt Ins/Del: dup/remove current sprite (can't remove last one)
+   Alt Arrows/RCtrl/KP0: move sprite
+                Alt ,/.: rotate sprite horizontally
+          Alt PGUP/PGDN: rotate sprite vertically
+            Alt KP/,KP*: change sprite size
+             LShift ,/.: change brightness
+             RShift ,/.: change texture/solid color mix
+                    LMB: select sprite under cursor (enable wireframe to see)
+                      \: cycle selected sprite (enable wireframe to see)
+
+Brush: -----------------------------------------------------------------------
+ LCtrl Arrows/RCtrl/KP0: move 3D brush (press 'G' to see brush)
+                    [/]: change brush radius
+                LMB/RMB: add/remove 3D brush (press 'G' to see brush)
+
+Physics: ---------------------------------------------------------------------
+                 Ctrl C: toggle collision
+                 Ctrl H: toggle hover checking (removes hovers at activation)
+                 Ctrl G: toggle gravity
+                  Alt H: generate sprite at cursor if hovering
+                  Alt S: swap solid&air (affects future physics ops)
+
+Debug: -----------------------------------------------------------------------
+                  F1-F8: select number of threads to use for rendering
+            Shift F1-F8: select threads to specific cores (can affect fps)
+                      `: toggle draw close cubes
+                      N: hold to show estimated normal at hit point
+                      C: "compact" octree
+                Shift C: check reduce allocated buffer sizes
+                      F: test physics //swizzle (mirror/flip axes)
+              (Shift) O: make sprite axes non-orthogonal
+                      U: update surf buffer (GPU only)
+                      I: toggle glswapinterval 0/1 (hw fps limit, GPU only)
+                  Alt B: replace sprite with sphere at brush cursor
+                Shift B: shrink-wrap grid
+                      B: grow grid
+                 Ctrl B: grow grid, centered
+                 Ctrl M: draw random brush_bmp_* (small/fast/general brush)
+                      A: test oct_modnew(): make new sprite from brush&oct
+
+Command line options: --------------------------------------------------------
+C:\>pnd3d (options)
+
+options are:
+   filename        Load voxel object. Supports: KVO,VXL,KV6,KVX,VOX,PNG
+   ~filename       Load voxel object, inverting alpha heightmap (PNG only)
+   /zip=filename   Mount ZIP file (files inside treated as local directory)
+   /out=filename   Save to voxel object and quit. Supported formats: KVO,KV6
+   /tile=filename  Select image w/16x16 grid of tiles (default:klabtiles.png)
+   /sky=filename   Select skybox (dimensions must be proportional to 1x6)
+   /info           Display octree info after load then quit
+   /win            Run in window (default)
+   /full           Run full screen
+   /#x#(x)         Specify screen resolution. Default: /1024x768  Examples:
+                     /640x480
+                     /1024x768x  <-the extra 'x' specifies full screen
+   /thr=#          Specify # threads. Default:autodetected # cores. (1-64)
+   /ls=#           Specify log2 voxel resolution. Range:1-12 (default:8)
+   /ils=#          Specify log2 instancing resolution. Range=1-? (default:0)
+   /i=#            Initial glswapinterval (0,1) (GPU only)
+   /fogdist=#      Typical range:0.0-4.0. Use 1e32 for infinite (draws skybox)
+   /fogcol=#       Select fog color (hex colors supported with 0x prefix)
+
+   /cpu            Force 2nd stage rendering to CPU
+   /gpu            Force 2nd stage rendering to GPU
+   /arbasm         Force 2nd stage rendering to ARB ASM (GPU only)
+   /glsl           Force 2nd stage rendering to GLSL    (GPU only)
+   /filt           Select filter: 0=nearest, 1=bilinear, 2=mipmap (GLSL only)
+
+Cool things worth trying: ----------------------------------------------------
+
+   At command line:
+      pnd3d /ls=12   'G', ']' until big, many 'Home', Ctrl+C to go inside, '{'
+      pnd3d /ils=4
+      pnd3d /cpu
+      pnd3d /fogcol=0xc08080 /fogdist=1.5
+      pnd3d /fogdist=1e32
+      pnd3d /tile=x
+      pnd3d ~tomland.png     NOTE:TOMLAND.PNG from GENLAND.EXE in GROUDRAW.ZIP
+
+   Inside app:
+      Ins/Del, Home/End, Tab&Space (with mouse over highlighted model)
+      G .. Alt Ins .. Ctrl+C .. Alt Arrows
+      F .. Home/End
+      Alt+H (with cursor over floating object)

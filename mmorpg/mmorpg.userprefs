@@ -1,0 +1,16 @@
+﻿<Properties>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\animateCharacter.cs">
+    <Files>
+      <File FileName="Assets\Scripts\moveCharacter.cs" Line="1" Column="1" />
+      <File FileName="Assets\Scripts\animateCharacter.cs" Line="74" Column="1" />
+      <File FileName="Assets\Scripts\personCamera.cs" Line="36" Column="9" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore>
+      <Breakpoint file="C:\Users\kovalexius\Dropbox\mmorpg\Assets\Scripts\animateCharacter.cs" line="91" />
+    </BreakpointStore>
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>
